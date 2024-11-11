@@ -1,0 +1,423 @@
+import os
+import io
+import json
+import math
+import pandas as pd
+import nltk
+from nltk.stem import SnowballStemmer
+from collections import defaultdict
+from typing import Dict
+import matplotlib.pyplot as plt
+import numpy as np
+import sqlite3
+
+# Asegúrate de tener los paquetes de datos necesarios de NLTK
+nltk.download('punkt')
+
+# Constantes de Configuración
+TAMANIO_CHUNK = 10000  # Número de filas por chunk
+
+class IndiceInvertido:
+    def __init__(self, ruta_csv: str):
+        self.ruta_csv = ruta_csv
+        self.stopwords = set()
+        self.stemmer = SnowballStemmer('spanish')
+        self.pesos_campos = []
+        self.indice_invertido = defaultdict(dict)
+        self.normas_documentos = {}
+        self.conn = sqlite3.connect('indice_invertido.db')
+        self._crear_tablas()
+        self._cargar_stopwords()
+        self._calcular_pesos_campos()  # Llamada a la nueva función para calcular los pesos
+
+    def _crear_tablas(self):
+        cursor = self.conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS indice_invertido (
+                termino TEXT,
+                id_documento TEXT,
+                frecuencia REAL,
+                PRIMARY KEY (termino, id_documento)
+            )
+        ''')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS normas_documentos (
+                id_documento TEXT PRIMARY KEY,
+                norma REAL
+            )
+        ''')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_termino ON indice_invertido (termino)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_id_documento ON indice_invertido (id_documento)')
+        self.conn.commit()
+
+    def _cargar_stopwords(self):
+        # Cargar stopwords aquí o generar una lista personalizada
+        # Por simplicidad, usaremos las stopwords en español de NLTK
+        from nltk.corpus import stopwords
+        nltk.download('stopwords')
+        self.stopwords = set(stopwords.words('spanish'))
+
+    def _calcular_pesos_campos(self):
+        # ... código para calcular los pesos ...
+        pass  # Puedes mantener tu implementación existente
+
+    def construir_indice(self):
+        numero_chunk = 0
+        try:
+            for chunk in pd.read_csv(self.ruta_csv, chunksize=TAMANIO_CHUNK, encoding='utf-8'):
+                numero_chunk += 1
+                print(f"Procesando chunk {numero_chunk}")
+                self._procesar_chunk(chunk)
+                self._guardar_indice_parcial()
+            self._guardar_normas()
+            print("Construcción del índice invertido completada.")
+        except Exception as e:
+            print(f"Error al construir el índice: {e}")
+
+    def _procesar_chunk(self, chunk: pd.DataFrame):
+        for indice, fila in chunk.iterrows():
+            id_documento = str(indice)
+            self.normas_documentos[id_documento] = 0
+            frecuencia_terminos = defaultdict(float)
+            
+            for idx_campo, campo in enumerate(fila):
+                # Puedes ajustar la lógica de pesos si lo deseas
+                peso = 1  # Usaremos peso 1 por simplicidad
+                tokens = nltk.word_tokenize(str(campo).lower())
+                tokens = [token.strip() for token in tokens]
+                for token in tokens:
+                    if token not in self.stopwords:
+                        lematizado = self.stemmer.stem(token)
+                        frecuencia_terminos[lematizado] += peso
+            # Actualizar índice invertido y normas
+            for termino, frecuencia in frecuencia_terminos.items():
+                frecuencia_log = math.log10(1 + frecuencia)
+                self.indice_invertido[termino][id_documento] = frecuencia_log
+                self.normas_documentos[id_documento] += frecuencia_log ** 2
+
+    def _guardar_indice_parcial(self):
+        cursor = self.conn.cursor()
+        for termino, postings in self.indice_invertido.items():
+            for id_documento, frecuencia in postings.items():
+                cursor.execute('''
+                    INSERT OR REPLACE INTO indice_invertido (termino, id_documento, frecuencia)
+                    VALUES (?, ?, ?)
+                ''', (termino, id_documento, frecuencia))
+        self.conn.commit()
+        print(f"Índice parcial guardado en la base de datos.")
+        self.indice_invertido.clear()
+
+    def _guardar_normas(self):
+        cursor = self.conn.cursor()
+        for id_documento, norma in self.normas_documentos.items():
+            norma = round(math.sqrt(norma), 3)
+            cursor.execute('''
+                INSERT OR REPLACE INTO normas_documentos (id_documento, norma)
+                VALUES (?, ?)
+            ''', (id_documento, norma))
+        self.conn.commit()
+        print(f"Normas guardadas en la base de datos.")
+
+    def __del__(self):
+        self.conn.close()
+
+class MotorConsulta:
+    def __init__(self):
+        self.stemmer = SnowballStemmer('spanish')
+        self.stopwords = set()
+        self.conn = sqlite3.connect('indice_invertido.db')
+        self._cargar_stopwords()
+
+    def _cargar_stopwords(self):
+        from nltk.corpus import stopwords
+        self.stopwords = set(stopwords.words('spanish'))
+
+    def procesar_consulta(self, consulta: str) -> Dict[str, float]:
+        tokens = nltk.word_tokenize(consulta.lower())
+        tokens = [token.strip() for token in tokens]
+        tokens_sin_stopwords = [token for token in tokens if token not in self.stopwords]
+        frecuencia_terminos = defaultdict(int)
+        for token in tokens_sin_stopwords:
+            lematizado = self.stemmer.stem(token)
+            frecuencia_terminos[lematizado] += 1
+        for termino in frecuencia_terminos:
+            frecuencia_terminos[termino] = round(math.log10(1 + frecuencia_terminos[termino]), 3)
+        return dict(frecuencia_terminos)
+
+    def buscar(self, consulta: str, top_k: int = 10) -> Dict[str, float]:
+        terminos_consulta = self.procesar_consulta(consulta)
+        if not terminos_consulta:
+            print("No hay términos válidos en la consulta después del procesamiento.")
+            return {}
+        
+        norma_consulta = math.sqrt(sum(freq ** 2 for freq in terminos_consulta.values()))
+        puntuaciones = defaultdict(float)
+        total_documentos = self._obtener_total_documentos()
+
+        cursor = self.conn.cursor()
+
+        for termino, frecuencia_q in terminos_consulta.items():
+            cursor.execute('SELECT COUNT(*) FROM indice_invertido WHERE termino = ?', (termino,))
+            df = cursor.fetchone()[0]
+            if df == 0:
+                continue
+            idf = math.log10(total_documentos / df)
+            cursor.execute('SELECT id_documento, frecuencia FROM indice_invertido WHERE termino = ?', (termino,))
+            for id_documento, frecuencia_d in cursor.fetchall():
+                puntuaciones[id_documento] += frecuencia_q * frecuencia_d * idf
+
+        # Normalizar las puntuaciones por las normas de los documentos y la norma de la consulta
+        for id_documento in puntuaciones:
+            cursor.execute('SELECT norma FROM normas_documentos WHERE id_documento = ?', (id_documento,))
+            resultado = cursor.fetchone()
+            if resultado and norma_consulta > 0:
+                norma_doc = resultado[0]
+                puntuaciones[id_documento] /= (norma_doc * norma_consulta)
+            else:
+                puntuaciones[id_documento] = 0.0
+
+        # Ordenar y recuperar los Top K
+        resultados_top = dict(sorted(puntuaciones.items(), key=lambda item: item[1], reverse=True)[:top_k])
+        return resultados_top
+
+    def _obtener_total_documentos(self):
+        cursor = self.conn.cursor()
+        cursor.execute('SELECT COUNT(*) FROM normas_documentos')
+        total_docs = cursor.fetchone()[0]
+        return total_docs
+
+    def __del__(self):
+        self.conn.close()
+
+# Ejemplo de Uso
+if __name__ == "__main__":
+    # Paso 1: Construir el Índice Invertido
+    indice = IndiceInvertido(
+        ruta_csv='spotify_songs.csv'
+    )
+    indice.construir_indice()
+
+    # Paso 2: Inicializar el Motor de Consulta
+    motor_busqueda = MotorConsulta()
+
+    # Paso 3: Procesar una Consulta
+    consulta_usuario = "amor"
+    terminos_procesados = motor_busqueda.procesar_consulta(consulta_usuario)
+    print("Términos Procesados de la Consulta:", terminos_procesados)
+
+    # Paso 4: Buscar y Recuperar los Top K Resultados
+    top_k = 10
+    resultados_busqueda = motor_busqueda.buscar(consulta_usuario, top_k=top_k)
+    print(f"Top {top_k} Resultados de Búsqueda:", resultados_busqueda)
+--
+import os
+import io
+import json
+import math
+import pandas as pd
+import nltk
+from nltk.stem import SnowballStemmer
+from collections import defaultdict
+from typing import Dict
+import matplotlib.pyplot as plt
+import numpy as np
+import sqlite3
+
+# Asegúrate de tener los paquetes de datos necesarios de NLTK
+nltk.download('punkt')
+
+# Constantes de Configuración
+TAMANIO_CHUNK = 10000  # Número de filas por chunk
+
+class IndiceInvertido:
+    def __init__(self, ruta_csv: str):
+        self.ruta_csv = ruta_csv
+        self.stopwords = set()
+        self.stemmer = SnowballStemmer('spanish')
+        self.pesos_campos = []
+        self.indice_invertido = defaultdict(dict)
+        self.normas_documentos = {}
+        self.conn = sqlite3.connect('indice_invertido.db')
+        self._crear_tablas()
+        self._cargar_stopwords()
+        self._calcular_pesos_campos()  # Llamada a la nueva función para calcular los pesos
+
+    def _crear_tablas(self):
+        cursor = self.conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS indice_invertido (
+                termino TEXT,
+                id_documento TEXT,
+                frecuencia REAL,
+                PRIMARY KEY (termino, id_documento)
+            )
+        ''')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS normas_documentos (
+                id_documento TEXT PRIMARY KEY,
+                norma REAL
+            )
+        ''')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_termino ON indice_invertido (termino)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_id_documento ON indice_invertido (id_documento)')
+        self.conn.commit()
+
+    def _cargar_stopwords(self):
+        # Cargar stopwords aquí o generar una lista personalizada
+        # Por simplicidad, usaremos las stopwords en español de NLTK
+        from nltk.corpus import stopwords
+        nltk.download('stopwords')
+        self.stopwords = set(stopwords.words('spanish'))
+
+    def _calcular_pesos_campos(self):
+        # ... código para calcular los pesos ...
+        pass  # Puedes mantener tu implementación existente
+
+    def construir_indice(self):
+        numero_chunk = 0
+        try:
+            for chunk in pd.read_csv(self.ruta_csv, chunksize=TAMANIO_CHUNK, encoding='utf-8'):
+                numero_chunk += 1
+                print(f"Procesando chunk {numero_chunk}")
+                self._procesar_chunk(chunk)
+                self._guardar_indice_parcial()
+            self._guardar_normas()
+            print("Construcción del índice invertido completada.")
+        except Exception as e:
+            print(f"Error al construir el índice: {e}")
+
+    def _procesar_chunk(self, chunk: pd.DataFrame):
+        for indice, fila in chunk.iterrows():
+            id_documento = str(indice)
+            self.normas_documentos[id_documento] = 0
+            frecuencia_terminos = defaultdict(float)
+            
+            for idx_campo, campo in enumerate(fila):
+                # Puedes ajustar la lógica de pesos si lo deseas
+                peso = 1  # Usaremos peso 1 por simplicidad
+                tokens = nltk.word_tokenize(str(campo).lower())
+                tokens = [token.strip() for token in tokens]
+                for token in tokens:
+                    if token not in self.stopwords:
+                        lematizado = self.stemmer.stem(token)
+                        frecuencia_terminos[lematizado] += peso
+            # Actualizar índice invertido y normas
+            for termino, frecuencia in frecuencia_terminos.items():
+                frecuencia_log = math.log10(1 + frecuencia)
+                self.indice_invertido[termino][id_documento] = frecuencia_log
+                self.normas_documentos[id_documento] += frecuencia_log ** 2
+
+    def _guardar_indice_parcial(self):
+        cursor = self.conn.cursor()
+        for termino, postings in self.indice_invertido.items():
+            for id_documento, frecuencia in postings.items():
+                cursor.execute('''
+                    INSERT OR REPLACE INTO indice_invertido (termino, id_documento, frecuencia)
+                    VALUES (?, ?, ?)
+                ''', (termino, id_documento, frecuencia))
+        self.conn.commit()
+        print(f"Índice parcial guardado en la base de datos.")
+        self.indice_invertido.clear()
+
+    def _guardar_normas(self):
+        cursor = self.conn.cursor()
+        for id_documento, norma in self.normas_documentos.items():
+            norma = round(math.sqrt(norma), 3)
+            cursor.execute('''
+                INSERT OR REPLACE INTO normas_documentos (id_documento, norma)
+                VALUES (?, ?)
+            ''', (id_documento, norma))
+        self.conn.commit()
+        print(f"Normas guardadas en la base de datos.")
+
+    def __del__(self):
+        self.conn.close()
+
+class MotorConsulta:
+    def __init__(self):
+        self.stemmer = SnowballStemmer('spanish')
+        self.stopwords = set()
+        self.conn = sqlite3.connect('indice_invertido.db')
+        self._cargar_stopwords()
+
+    def _cargar_stopwords(self):
+        from nltk.corpus import stopwords
+        self.stopwords = set(stopwords.words('spanish'))
+
+    def procesar_consulta(self, consulta: str) -> Dict[str, float]:
+        tokens = nltk.word_tokenize(consulta.lower())
+        tokens = [token.strip() for token in tokens]
+        tokens_sin_stopwords = [token for token in tokens if token not in self.stopwords]
+        frecuencia_terminos = defaultdict(int)
+        for token in tokens_sin_stopwords:
+            lematizado = self.stemmer.stem(token)
+            frecuencia_terminos[lematizado] += 1
+        for termino in frecuencia_terminos:
+            frecuencia_terminos[termino] = round(math.log10(1 + frecuencia_terminos[termino]), 3)
+        return dict(frecuencia_terminos)
+
+    def buscar(self, consulta: str, top_k: int = 10) -> Dict[str, float]:
+        terminos_consulta = self.procesar_consulta(consulta)
+        if not terminos_consulta:
+            print("No hay términos válidos en la consulta después del procesamiento.")
+            return {}
+        
+        norma_consulta = math.sqrt(sum(freq ** 2 for freq in terminos_consulta.values()))
+        puntuaciones = defaultdict(float)
+        total_documentos = self._obtener_total_documentos()
+
+        cursor = self.conn.cursor()
+
+        for termino, frecuencia_q in terminos_consulta.items():
+            cursor.execute('SELECT COUNT(*) FROM indice_invertido WHERE termino = ?', (termino,))
+            df = cursor.fetchone()[0]
+            if df == 0:
+                continue
+            idf = math.log10(total_documentos / df)
+            cursor.execute('SELECT id_documento, frecuencia FROM indice_invertido WHERE termino = ?', (termino,))
+            for id_documento, frecuencia_d in cursor.fetchall():
+                puntuaciones[id_documento] += frecuencia_q * frecuencia_d * idf
+
+        # Normalizar las puntuaciones por las normas de los documentos y la norma de la consulta
+        for id_documento in puntuaciones:
+            cursor.execute('SELECT norma FROM normas_documentos WHERE id_documento = ?', (id_documento,))
+            resultado = cursor.fetchone()
+            if resultado and norma_consulta > 0:
+                norma_doc = resultado[0]
+                puntuaciones[id_documento] /= (norma_doc * norma_consulta)
+            else:
+                puntuaciones[id_documento] = 0.0
+
+        # Ordenar y recuperar los Top K
+        resultados_top = dict(sorted(puntuaciones.items(), key=lambda item: item[1], reverse=True)[:top_k])
+        return resultados_top
+
+    def _obtener_total_documentos(self):
+        cursor = self.conn.cursor()
+        cursor.execute('SELECT COUNT(*) FROM normas_documentos')
+        total_docs = cursor.fetchone()[0]
+        return total_docs
+
+    def __del__(self):
+        self.conn.close()
+
+# Ejemplo de Uso
+if __name__ == "__main__":
+    # Paso 1: Construir el Índice Invertido
+    indice = IndiceInvertido(
+        ruta_csv='spotify_songs.csv'
+    )
+    indice.construir_indice()
+
+    # Paso 2: Inicializar el Motor de Consulta
+    motor_busqueda = MotorConsulta()
+
+    # Paso 3: Procesar una Consulta
+    consulta_usuario = "amor"
+    terminos_procesados = motor_busqueda.procesar_consulta(consulta_usuario)
+    print("Términos Procesados de la Consulta:", terminos_procesados)
+
+    # Paso 4: Buscar y Recuperar los Top K Resultados
+    top_k = 10
+    resultados_busqueda = motor_busqueda.buscar(consulta_usuario, top_k=top_k)
+    print(f"Top {top_k} Resultados de Búsqueda:", resultados_busqueda)

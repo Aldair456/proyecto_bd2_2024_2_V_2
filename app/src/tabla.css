@@ -1,0 +1,52 @@
+
+
+/* table {
+    margin-top: 10rem;
+    margin-bottom: 10rem;
+}
+
+.tabla-izquierda {
+    border-collapse: collapse;
+    margin-left: 10rem;
+    margin-top: 10rem;
+    margin-bottom: -10rem;
+
+}
+
+.tabla-izquierda th, .tabla-izquierda td {
+    border: 2px solid black;
+    padding: 70px;
+}
+
+.tabla-derecha {
+    border-collapse: collapse;
+    margin-left: 90rem;
+    margin-bottom: -5rem;
+    
+}
+
+.tabla-derecha th, .tabla-derecha td {
+    border: 2px solid black;
+    padding: 70px;
+
+    
+
+} */
+
+a {
+    font-size: 2rem;
+}
+
+caption {
+    font-size: 3rem;
+}
+
+table{
+    border-collapse: collapse;
+    margin-left: 5rem;
+    margin-right: 5rem;
+}
+th, td{
+    border: 2px solid black;
+    padding: 8px;
+}

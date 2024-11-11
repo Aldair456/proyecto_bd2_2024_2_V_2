@@ -1,0 +1,207 @@
+/* Fondo del cuerpo */
+body {
+  background-image: url('https://media.istockphoto.com/id/1093558690/es/vector/abstracta-fondo-borroso-azul-oscuro-con-humo-y-copia.jpg?s=612x612&w=0&k=20&c=QFuZWY0UI_7VDI8mCrFP_U_RL-9ie1yHFRF0k63qYgA=');
+  background-size: cover;
+  background-repeat: no-repeat;
+  color: #333;
+  font-family: Arial, sans-serif;
+  font-size: 10px;
+  margin: 0;
+}
+
+/* Estilos del encabezado principal */
+.main-header {
+  text-align: center;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: #fff;
+}
+
+.main-header h1 {
+  font-size: 2rem;
+  margin: 0;
+}
+
+.main-header p {
+  font-size: 1rem;
+  margin: 5px 0 15px;
+}
+
+.nav-menu ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.nav-menu ul li {
+  display: inline;
+}
+
+.nav-menu ul li a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 1rem;
+  padding: 8px 15px;
+  transition: background 0.3s;
+  border-radius: 5px;
+}
+
+.nav-menu ul li a:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Contenedor principal para el jumbotron y la imagen al costado */
+.main-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px; /* Espacio entre el jumbotron y la imagen */
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Estilos del jumbotron */
+.jumbotron {
+  background-color: rgba(255, 255, 255, 0.85);
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  max-width: 700px;
+  text-align: center;
+}
+
+.display-4 {
+  color: #2A3E66;
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.serif {
+  font-size: 1.2rem;
+  color: #666;
+}
+
+/* Contenedor de búsqueda */
+.search-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.input-field {
+  padding: 0.5rem;
+  margin: 0 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  width: 150px;
+}
+
+.search-button {
+  padding: 0.5rem 1rem;
+  background-color: #4A90E2;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.search-button:hover {
+  background-color: #357ABD;
+}
+
+/* Botones de selección de tabla */
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.selection-button {
+  padding: 0.5rem 1rem;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.selection-button.active {
+  background-color: #4A90E2;
+  color: white;
+  border: none;
+}
+
+.tiempo-ejecucion {
+  margin-top: 1rem;
+  font-size: 1rem;
+  color: #666;
+}
+
+/* Botones de paginación */
+.pagination-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.pagination-button {
+  padding: 0.5rem 1rem;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.pagination-button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Estilos de la tabla de resultados */
+.tabla-container {
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 1rem;
+  border-radius: 10px;
+  max-width: 90%;
+  margin: 2rem auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 0.75rem;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+  color: #333;
+}
+
+td {
+  color: #333;
+}
+
+/* Imagen al costado del jumbotron */
+.side-image {
+  width: 150px;
+  height: 150px;
+  background-image: url('/static/images/NotaMusical.png'); /* Asegúrate de que la imagen esté en esta ruta */
+  background-size: cover;
+  background-position: center;
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}

@@ -1,0 +1,117 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<!-- Encabezado de la página -->
+<header class="main-header">
+  <h1>Spotify Music Explorer</h1>
+  <p>Explora y encuentra las mejores canciones para ti</p>
+  <nav class="nav-menu">
+    <ul>
+      <li><a href="/">Inicio</a></li>
+      <li><a href="/about">Sobre Nosotros</a></li>
+      <li><a href="/services">Servicios</a></li>
+      <li><a href="/contact">Contacto</a></li>
+    </ul>
+  </nav>
+</header>
+
+<div class="main-container">
+  <!-- Cuadro principal -->
+  <div class="jumbotron">
+    <h2 class="display-4">Spotify Songs</h2>
+    <p class="serif">Encuentra las mejores recomendaciones de canciones</p>
+    <hr class="my-4">
+    <p class="lead">El buscador más eficiente</p>
+
+    <div class="search-container">
+      <form id="search-form">
+        <input type="text" id="searchQuery" name="consulta" placeholder="Ingresa la Query..." class="input-field" required>
+        <input type="number" id="topk" name="top_k" placeholder="Ingresa el top K..." class="input-field" min="1" value="10" required>
+        <button id="selection-button" type="submit" class="search-button">Buscar</button>
+      </form>
+    </div>
+
+    <div id="scroll-target" class="button-group">
+      <button id="tablaA" class="selection-button active" onclick="seleccionarTabla('tablaA')">Index Invertido</button>
+      <button id="tablaB" class="selection-button" onclick="seleccionarTabla('tablaB')">PostgreSQL</button>
+    </div>
+
+    <div class="tiempo-ejecucion">
+      Tiempo de ejecución de la consulta: <span id="tiempo_consulta">0</span> segundos
+    </div>
+
+    <div class="pagination-buttons">
+      <button class="pagination-button" onclick="previousPage()">Anterior</button>
+      <button class="pagination-button" onclick="nextPage()">Siguiente</button>
+    </div>
+  </div>
+
+  <!-- Imagen al costado del jumbotron -->
+  <div class="side-image" aria-label="Nota Musical"></div>
+</div>
+
+<!-- Contenedor para los resultados de Index Invertido -->
+<div id="tablaA-container" class="tabla-container" style="display: none;">
+  <h3>Resultados de Index Invertido</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Track ID</th>
+        <th>Track Name</th>
+        <th>Track Artist</th>
+        <th>Track Popularity</th>
+        <th>Track Album Name</th>
+        <th>Track Album Release Date</th>
+        <th>Playlist Name</th>
+        <th>Playlist Genre</th>
+        <th>Playlist Subgenre</th>
+        <th>Danceability</th>
+        <th>Energy</th>
+        <th>Key</th>
+        <th>Loudness</th>
+        <th>Mode</th>
+        <th>Speechiness</th>
+        <th>Acousticness</th>
+        <th>Instrumentalness</th>
+        <th>Liveness</th>
+        <th>Valence</th>
+        <th>Tempo</th>
+        <th>Duration (ms)</th>
+        <th>Language</th>
+      </tr>
+    </thead>
+    <tbody id="tablaA-body">
+      <!-- Resultados se insertarán aquí -->
+    </tbody>
+  </table>
+</div>
+
+<!-- Contenedor para los resultados de PostgreSQL (puedes implementarlo si lo deseas) -->
+<div id="tablaB-container" class="tabla-container" style="display: none;">
+  <h3>Resultados de PostgreSQL</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Gender</th>
+        <th>Master Category</th>
+        <th>Sub Category</th>
+        <th>Article Type</th>
+        <th>Base Colour</th>
+        <th>Season</th>
+        <th>Year</th>
+        <th>Usage</th>
+        <th>Product Display Name</th>
+        <th>Image</th>
+      </tr>
+    </thead>
+    <tbody id="tablaB-body">
+      <!-- Resultados se insertarán aquí -->
+    </tbody>
+  </table>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+{% endblock %}

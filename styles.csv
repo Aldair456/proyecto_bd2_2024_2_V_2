@@ -1,0 +1,11 @@
+ProductID,Title,Description,Category,Brand,Color,Material,Price,Rating
+1,Classic T-Shirt,A comfortable and casual t-shirt,Clothing,Hanes,Blue,Cotton,19.99,4.5
+2,Slim Fit Jeans,Stylish and durable jeans for everyday wear,Clothing,Levi's,Dark Blue,Denim,59.99,4.7
+3,Running Shoes,Lightweight running shoes for active lifestyle,Shoes,Nike,Black,Synthetic,89.99,4.8
+4,Leather Jacket,Premium leather jacket with zipper pockets,Clothing,Zara,Black,Leather,129.99,4.6
+5,Formal Shirt,Smart casual shirt perfect for formal occasions,Clothing,Uniqlo,White,Cotton,29.99,4.3
+6,Winter Scarf,Warm and soft scarf for cold weather,Accessories,H&M,Red,Wool,15.99,4.2
+7,Sports Watch,Durable and water-resistant watch for sports,Accessories,Adidas,Black,Plastic,99.99,4.1
+8,Summer Dress,Light summer dress with floral print,Clothing,Forever 21,Yellow,Polyester,24.99,4.0
+9,Backpack,Spacious backpack with multiple compartments,Accessories,North Face,Gray,Nylon,69.99,4.6
+10,Sunglasses,UV protection sunglasses for sunny days,Accessories,Ray-Ban,Black,Plastic,129.99,4.9
