@@ -10,7 +10,7 @@ from typing import Dict
 
 nltk.download('punkt')
 
-TAMANIO_CHUNK = int(io.DEFAULT_BUFFER_SIZE * 4.15)  # Número de filas por chunk
+TAMANIO_CHUNK = 467258 # Número de filas por chunk esto basandonos en el uso del 10%de la memoria disponible
 RUTA_INDICE_LOCAL = r"C:\Users\semin\BD2"
 RUTA_INDICE_FINAL = r"C:\Users\semin\BD2"
 RUTA_ARCHIVO_CSV = r"C:\Users\semin\BD2\spotify_songs.csv"
@@ -172,6 +172,7 @@ class MotorConsulta:
             return {}
 
     def _cargar_normas(self) -> Dict[str, float]:
+        print("Estoy  aqui")
         """cargar las normas de los documentos desde el archivo normas.json."""
         try:
             with open(self.ruta_normas, 'r', encoding='utf-8') as archivo:
@@ -197,7 +198,7 @@ class MotorConsulta:
         return dict(frecuencia_terminos)
 
     def buscar(self, consulta: str, top_k: int = 10) -> Dict[str, Dict]:
-        """buscar en el indice invertido la consulta y devolver los Top K documentos con sus datos completos."""
+        """Buscar en el índice invertido la consulta y devolver los Top K documentos con sus datos completos y su similitud del coseno."""
         terminos_consulta = self.procesar_consulta(consulta)
         if not terminos_consulta:
             print("No hay términos válidos en la consulta después del procesamiento.")
@@ -213,18 +214,21 @@ class MotorConsulta:
                 for id_documento, frecuencia_d in postings.items():
                     puntuaciones[id_documento] += frecuencia_q * frecuencia_d * idf
 
-        # cormalizar las puntuaciones por las normas de los documentos y la norma de la consulta
+        # Normalizar las puntuaciones por las normas de los documentos y la norma de la consulta
+        similitud_coseno = {}
         for id_documento in puntuaciones:
             if self.normas_documentos.get(id_documento, 0) > 0 and norma_consulta > 0:
-                puntuaciones[id_documento] /= (self.normas_documentos[id_documento] * norma_consulta)
+                similitud_coseno[id_documento] = puntuaciones[id_documento] / (self.normas_documentos[id_documento] * norma_consulta)
             else:
-                puntuaciones[id_documento] = 0.0
+                similitud_coseno[id_documento] = 0.0
 
-        # ordenar y recuperar los Top K
-        resultados_top_ids = dict(sorted(puntuaciones.items(), key=lambda item: item[1], reverse=True)[:top_k])
+        # Ordenar y recuperar los Top K resultados
+        resultados_top_ids = dict(sorted(similitud_coseno.items(), key=lambda item: item[1], reverse=True)[:top_k])
 
-        # cargar los datos de los documentos correspondientes
+        # Cargar los datos de los documentos correspondientes y agregar la similitud del coseno
         documentos_resultados = self._cargar_documentos(resultados_top_ids.keys())
+        for doc_id in documentos_resultados:
+            documentos_resultados[doc_id]['similitud_coseno'] = round(resultados_top_ids[doc_id], 3)  # Redondear la similitud
 
         return documentos_resultados
 
@@ -241,6 +245,7 @@ class MotorConsulta:
         except Exception as e:
             print(f"Error al cargar los documentos: {e}")
         return documentos
+
 
 """
 # Ejemplo de Uso

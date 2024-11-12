@@ -243,7 +243,7 @@ if __name__ == "__main__":
     )
 
     # Paso 4: Procesar una Consulta
-    consulta_usuario = "004s3t0ONYlzxII9PLgU6z"
+    consulta_usuario = "0idc0XRnLRovVqpWnGQ6hC	"
     terminos_procesados = motor_busqueda.procesar_consulta(consulta_usuario)
     print("Términos Procesados de la Consulta:", terminos_procesados)
 

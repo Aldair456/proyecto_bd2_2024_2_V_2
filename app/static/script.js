@@ -75,6 +75,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${doc.tempo || 'N/A'}</td>
                         <td>${doc.duration_ms || 'N/A'}</td>
                         <td>${doc.language || 'N/A'}</td>
+                        <td>${doc.similitud_coseno || '0.0'}</td> <!-- Nueva columna para la similitud del coseno -->
+
                     `;
                     tablaABody.appendChild(row);
                 }
