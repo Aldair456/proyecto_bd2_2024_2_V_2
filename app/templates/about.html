@@ -1,8 +1,51 @@
-<!DOCTYPE html>
 {% extends "layout.html" %}
 
 {% block content %}
 
-<h1>About</h1>
+<!-- Encabezado de la página -->
+<header class="main-header">
+  <h1>Spotify Music Explorer</h1>
+  <p>Explora y encuentra imágenes similares con nuestra herramienta</p>
+  <nav class="nav-menu">
+    <ul>
+      <li><a href="/">Inicio</a></li>
+      <li><a href="/about" class="active">Búsqueda Por Imágenes</a></li>
+      <li><a href="/services">Servicios</a></li>
+      <li><a href="/contact">Contacto</a></li>
+    </ul>
+  </nav>
+</header>
 
-{% endblock%}
+<div class="main-container">
+  <!-- Cuadro principal -->
+  <div class="jumbotron">
+    <h2 class="display-4">Búsqueda de Imágenes</h2>
+    <p class="serif">Sube una imagen y encuentra otras similares</p>
+    <hr class="my-4">
+    <p class="lead">El buscador más eficiente para imágenes relacionadas</p>
+
+    <div class="search-container">
+      <form id="image-search-form" enctype="multipart/form-data">
+        <input type="file" id="image-upload" name="image" accept="image/*" class="input-field" required>
+        <input type="number" id="k-value" name="k" min="1" value="5" placeholder="Número de vecinos (k)" class="input-field">
+        <button id="search-button" type="submit" class="search-button">Buscar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Contenedor para los resultados -->
+  <div id="tablaA-container" class="tabla-container" style="display: none;">
+    <h3>Resultados de Búsqueda</h3>
+    <div id="image-results-index" class="image-results" style="display: flex; flex-wrap: wrap; gap: 20px;">
+      <!-- Resultados se insertarán aquí -->
+    </div>
+  </div>
+</div>
+
+<!-- Imagen al costado del jumbotron -->
+<div class="side-image" aria-label="Nota Musical"></div>
+
+<!-- Enlace al archivo de JavaScript -->
+<script src="{{ url_for('static', filename='script_about.js') }}"></script>
+
+{% endblock %}
