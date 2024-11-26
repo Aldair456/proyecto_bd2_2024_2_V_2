@@ -4,14 +4,12 @@ import nltk
 from nltk.stem import SnowballStemmer
 from collections import defaultdict
 
-# Asegúrate de tener los paquetes necesarios de NLTK
 nltk.download('punkt')
 
 def calcular_pesos_campos(ruta_csv, ruta_stoplist, ruta_pesos):
     stemmer = SnowballStemmer('spanish')
     stopwords = set()
-    
-    # Cargar stopwords
+    # CARGAMOS LOS STOPWORDS
     try:
         with open(ruta_stoplist, 'r', encoding='utf-8') as archivo:
             for linea in archivo:
@@ -21,15 +19,15 @@ def calcular_pesos_campos(ruta_csv, ruta_stoplist, ruta_pesos):
     except FileNotFoundError:
         print(f"Archivo de stopwords no encontrado en {ruta_stoplist}")
     
-    # Añadir caracteres especiales a las stopwords
+    # añadimos los caracteres especiales
     caracteres_especiales = set("'«[]¿?$+-*'.,»:;!,º«»()@¡😆“/#|*%'&`")
     stopwords.update(caracteres_especiales)
     
-    # Variables para el cálculo
+    # variables 
     total_campos = None
     terminos_por_campo = []
     total_documentos = 0
-    TAMANIO_CHUNK = 10000  # Ajusta según tus recursos
+    TAMANIO_CHUNK = 10000   # consideraremos este chunk 
     entropias = []
     pesos_campos = []
     
@@ -53,7 +51,7 @@ def calcular_pesos_campos(ruta_csv, ruta_stoplist, ruta_pesos):
         print(f"Error al leer el archivo CSV para calcular pesos: {e}")
         return
     
-    # Calcular entropía para cada campo
+    # calculamos la entropia 
     for idx_campo in range(total_campos):
         frecuencias = np.array(list(terminos_por_campo[idx_campo].values()))
         if frecuencias.sum() == 0:
@@ -63,7 +61,7 @@ def calcular_pesos_campos(ruta_csv, ruta_stoplist, ruta_pesos):
         entropia = -np.sum(probabilidades * np.log2(probabilidades + 1e-9))
         entropias.append(entropia)
     
-    # Normalizar las entropías para que sumen 1 y asignar pesos
+    # normalizamos las entropias
     suma_entropias = sum(entropias)
     if suma_entropias == 0:
         pesos_campos = [0 for _ in entropias]
@@ -71,17 +69,16 @@ def calcular_pesos_campos(ruta_csv, ruta_stoplist, ruta_pesos):
         pesos_campos = [ent / suma_entropias for ent in entropias]
     
     print("Pesos de campos calculados:", pesos_campos)
-    
-    # Guardar los pesos en un archivo JSON
+    # guardamos en un  json
     import json
     with open(ruta_pesos, 'w', encoding='utf-8') as archivo:
         json.dump(pesos_campos, archivo)
     print(f"Pesos guardados en {ruta_pesos}")
 
-# Ejemplo de uso:
+# rutas y llamada a la  función
 if __name__ == "__main__":
-    ruta_csv = r"C:\Users\semin\BD2\spotify_songs.csv"
-    ruta_stoplist = r"C:\Users\semin\BD2\stopwords_personalizadas.csv"
-    ruta_pesos = r"C:\Users\semin\BD2\pesos_campos.json"
+    ruta_csv = r"C:\Users\semin\OneDrive\Escritorio\bd2_code\Clonación2\Proyecto_2_BD2\spotify_songs_filtrado.csv"
+    ruta_stoplist = r"C:\Users\semin\OneDrive\Escritorio\bd2_code\Clonación2\Proyecto_2_BD2\stoplist.csv"
+    ruta_pesos = r"C:\Users\semin\OneDrive\Escritorio\bd2_code\Clonación2\Proyecto_2_BD2\app\TESING\pesos_campos.json"
     
     calcular_pesos_campos(ruta_csv, ruta_stoplist, ruta_pesos)

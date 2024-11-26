@@ -44,39 +44,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Verificar si hay resultados
             if (Object.keys(data).length === 0) {
-                tablaABody.innerHTML = '<tr><td colspan="21">No se encontraron resultados.</td></tr>';
+                tablaABody.innerHTML = '<tr><td colspan="6">No se encontraron resultados.</td></tr>';
             } else {
-                // Insertar cada resultado en la tablaA-body
+                // Insertar cada resultado en la tablaA-body con las columnas solicitadas
                 for (const id in data) {
                     const doc = data[id];
                     const row = document.createElement('tr');
 
-                    // Crear y añadir celdas a la fila
+                    // Crear y añadir solo las celdas necesarias a la fila
                     row.innerHTML = `
                         <td>${doc.track_id || 'N/A'}</td>
                         <td>${doc.track_name || 'N/A'}</td>
                         <td>${doc.track_artist || 'N/A'}</td>
-                        <td>${doc.track_popularity || 'N/A'}</td>
-                        <td>${doc.track_album_name || 'N/A'}</td>
-                        <td>${doc.track_album_release_date || 'N/A'}</td>
+                        <td>${doc.lyrics || 'N/A'}</td>
                         <td>${doc.playlist_name || 'N/A'}</td>
-                        <td>${doc.playlist_genre || 'N/A'}</td>
-                        <td>${doc.playlist_subgenre || 'N/A'}</td>
-                        <td>${doc.danceability || 'N/A'}</td>
-                        <td>${doc.energy || 'N/A'}</td>
-                        <td>${doc.key || 'N/A'}</td>
-                        <td>${doc.loudness || 'N/A'}</td>
-                        <td>${doc.mode || 'N/A'}</td>
-                        <td>${doc.speechiness || 'N/A'}</td>
-                        <td>${doc.acousticness || 'N/A'}</td>
-                        <td>${doc.instrumentalness || 'N/A'}</td>
-                        <td>${doc.liveness || 'N/A'}</td>
-                        <td>${doc.valence || 'N/A'}</td>
-                        <td>${doc.tempo || 'N/A'}</td>
-                        <td>${doc.duration_ms || 'N/A'}</td>
-                        <td>${doc.language || 'N/A'}</td>
                         <td>${doc.similitud_coseno || '0.0'}</td> <!-- Nueva columna para la similitud del coseno -->
-
                     `;
                     tablaABody.appendChild(row);
                 }

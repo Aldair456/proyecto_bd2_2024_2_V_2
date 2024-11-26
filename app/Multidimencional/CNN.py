@@ -42,7 +42,7 @@ def extract_features_url(url, index, output_bin):
             del img_array, features
             gc.collect()  
 
-            print(f"Características extraídas y guardadas para la imagen en el índice {index}")
+            print(f"Características extraídas y guardadas para la imagen en el indice {index}")
         else:
             print(f"Error al descargar la imagen en el índice {index}: Status code {response.status_code}")
     except Exception as e:
@@ -65,4 +65,4 @@ output_bin = 'vectors.bin'
 
 filename_to_index = map_filenames_to_indices(csv_file)
 process_csv(csv_file, output_bin)
-print("\nExtracción de características completada.")
+print("\nExtracción de características completada")

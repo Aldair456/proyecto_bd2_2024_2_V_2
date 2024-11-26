@@ -6,12 +6,13 @@ import json
 
 main = Blueprint('main', __name__)
 
-# Configuración de rutas de archivos
+# Configuracion de rutas de archivos
 RUTA_INDICE_LOCAL = r"C:\Users\semin\BD2"
-RUTA_ARCHIVO_CSV = r"C:\Users\semin\BD2\spotify_songs.csv"
+RUTA_ARCHIVO_CSV = r"C:\Users\semin\OneDrive\Escritorio\bd2_code\Clonación2\Proyecto_2_BD2\spotify_songs_filtrado.csv"
+#RUTA_STOPLIST = r"C:\Users\semin\BD2\stoplist.csv"
 RUTA_STOPLIST = r"C:\Users\semin\BD2\stoplist.csv"
-RUTA_NORMAS = r"C:\Users\semin\BD2\normas.json"
-RUTA_PESOS_CAMPO = r"C:\Users\semin\BD2\pesos_campos.json"
+RUTA_NORMAS = r"C:\Users\semin\OneDrive\Escritorio\bd2_code\Clonación2\Proyecto_2_BD2\app\TESING\normas.json"
+RUTA_PESOS_CAMPO = r"C:\Users\semin\OneDrive\Escritorio\bd2_code\Clonación2\Proyecto_2_BD2\app\TESING\pesos_campos.json"
 
 knn = knnsecuencial()
 
@@ -44,6 +45,7 @@ def consulta():
 
         # Buscar y recuperar resultados
         resultados_busqueda = motor_busqueda.buscar(consulta_usuario, top_k=top_k)
+        print(resultados_busqueda)
         print(f"Top {top_k} Resultados:", json.dumps(resultados_busqueda, indent=2, ensure_ascii=False))
         return jsonify(resultados_busqueda)
     except Exception as e:
