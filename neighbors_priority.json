@@ -28,11 +28,14 @@
         "Filename": "11188.jpg",
         "Distance": 14.071539235619001,
         "Link": "http://assets.myntassets.com/v1/images/style/properties/b2959d44db543af13d78492225a830de_images.jpg"
+<<<<<<< HEAD
     },
     {
         "Index": 50,
         "Filename": "44984.jpg",
         "Distance": 14.399553878141552,
         "Link": "http://assets.myntassets.com/v1/images/style/properties/676dd802241d46a5ce28c78d1dabbc5a_images.jpg"
+=======
+>>>>>>> 86e971fcbd4526ef23cb2dec0952a22681f0735c
     }
 ]
