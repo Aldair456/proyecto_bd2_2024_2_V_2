@@ -31,8 +31,8 @@
     </div>
 
     <div id="scroll-target" class="button-group">
-      <button id="tablaA" class="selection-button active" onclick="seleccionarTabla('tablaA')">Index Invertido</button>
-      <button id="tablaB" class="selection-button" onclick="seleccionarTabla('tablaB')">PostgreSQL</button>
+      <button id="tablaA" class="selection-button active" onclick="mostrarMensajeIndiceInvertido()">Index Invertido</button>
+      <button id="tablaB" class="selection-button" onclick="mostrarMensajePostgreSQL()">PostgreSQL</button>
     </div>
 
     <div class="tiempo-ejecucion">
@@ -46,6 +46,16 @@
   </div>
 
   <div class="side-image" aria-label="Nota Musical"></div>
+</div>
+
+<!-- Mensaje sobre el uso de la base de datos -->
+<div class="database-message" id="database-message" style="display: none;">
+  <p>Estás usando la base de datos.</p>
+</div>
+
+<!-- Mensaje sobre el uso del algoritmo -->
+<div class="algorithm-message" id="algorithm-message" style="display: none;">
+  <p>Estás usando tu algoritmo.</p>
 </div>
 
 <!-- Contenedor para los resultados de Index Invertido -->
@@ -68,23 +78,18 @@
   </table>
 </div>
 
-<!-- Contenedor para los resultados de PostgreSQL (deberías modificar esto si no se usa o se personaliza más adelante) -->
+<!-- Contenedor para los resultados de PostgreSQL -->
 <div id="tablaB-container" class="tabla-container" style="display: none;">
   <h3>Resultados de PostgreSQL</h3>
   <table>
     <thead>
       <tr>
-        <th>Id</th>
-        <th>Gender</th>
-        <th>Master Category</th>
-        <th>Sub Category</th>
-        <th>Article Type</th>
-        <th>Base Colour</th>
-        <th>Season</th>
-        <th>Year</th>
-        <th>Usage</th>
-        <th>Product Display Name</th>
-        <th>Image</th>
+        <th>Track ID</th>
+        <th>Track Name</th>
+        <th>Track Artist</th>
+        <th>Lyrics</th>
+        <th>Playlist Name</th>
+        <th>Similitud del Coseno</th>
       </tr>
     </thead>
     <tbody id="tablaB-body">
@@ -94,5 +99,20 @@
 </div>
 
 <script src="{{ url_for('static', filename='script.js') }}"></script>
+<script>
+  function mostrarMensajePostgreSQL() {
+    // Muestra el mensaje de que se está usando la base de datos
+    document.getElementById('database-message').style.display = 'block';
+    document.getElementById('algorithm-message').style.display = 'none'; // Oculta el mensaje del algoritmo
+    seleccionarTabla('tablaB'); // Llama a la función para mostrar la tabla de PostgreSQL
+  }
+
+  function mostrarMensajeIndiceInvertido() {
+    // Muestra el mensaje de que se está usando el algoritmo
+    document.getElementById('algorithm-message').style.display = 'block';
+    document.getElementById('database-message').style.display = 'none'; // Oculta el mensaje de la base de datos
+    seleccionarTabla('tablaA'); // Llama a la función para mostrar la tabla de índice invertido
+  }
+</script>
 
 {% endblock %}
