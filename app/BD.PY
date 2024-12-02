@@ -27,6 +27,7 @@ class PostgresConnector:
             track_name VARCHAR,
             track_artist VARCHAR,
             lyrics TEXT,
+            playlist_name VARCHAR,
             search_vector tsvector
         );
         """
@@ -52,6 +53,7 @@ class PostgresConnector:
                             to_tsvector('spanish', COALESCE(NEW.track_artist,'')), 'C') ||
                     setweight(to_tsvector('english', COALESCE(NEW.lyrics,'')) || 
                             to_tsvector('spanish', COALESCE(NEW.lyrics,'')), 'D');
+                    
                 RETURN NEW;
             END;
             $$ LANGUAGE plpgsql;
@@ -78,9 +80,9 @@ class PostgresConnector:
         df = pd.read_csv(csv_path)
         for _, row in df.iterrows():
             self.cur.execute("""
-            INSERT INTO songs.spotify_songs (track_id, track_name, track_artist, lyrics)
-            VALUES (%s, %s, %s, %s)
-            """, (row['track_id'], row['track_name'], row['track_artist'], row['lyrics']))
+            INSERT INTO songs.spotify_songs (track_id, track_name, track_artist, lyrics, playlist_name)
+            VALUES (%s, %s, %s, %s,%s)
+            """, (row['track_id'], row['track_name'], row['track_artist'], row['lyrics'],row['playlist_name']))
         
         self.conn.commit()
 
@@ -97,6 +99,7 @@ class PostgresConnector:
                     track_name, 
                     track_artist,
                     lyrics,
+                    playlist_name,
                     ctid::text as row_position,
                     ts_rank_cd(search_vector, to_tsquery('english', %s) || to_tsquery('spanish', %s)) as similitud
                 FROM songs.spotify_songs
@@ -138,5 +141,5 @@ for result in results['results']:
     print(f"Nombre de la canción: {result['track_name']}")
     print(f"Artista: {result['track_artist']}")
     print(f"Letras: {result['lyrics']}")
-    print(f"Posición de la fila: {result['row_position']}")
+    print(f"Posición de la fila: {result['playlist_name']}")
     print(f"Similitud: {result['similitud']}")

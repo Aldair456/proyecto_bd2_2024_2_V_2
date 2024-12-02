@@ -89,8 +89,8 @@ class PostgresConnector:
         df = pd.read_csv(csv_path)
         for _, row in df.iterrows():
             self.cur.execute("""
-            INSERT INTO songs.spotify_songs (track_id, track_name, track_artist, lyrics)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO songs.spotify_songs (track_id, track_name, track_artist, lyrics,playlist_name)
+            VALUES (%s, %s, %s, %s,%s)
             """, (row['track_id'], row['track_name'], row['track_artist'], row['lyrics'],row['playlist_name']))
         
         self.conn.commit()
