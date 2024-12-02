@@ -305,7 +305,7 @@ if __name__ == "__main__":
     # Paso 2: Inicializar el Motor de Consulta con la ruta_stoplist
     motor_busqueda = MotorConsulta(
         ruta_indice=RUTA_INDICE_LOCAL,
-        ruta_normas=RUTA_NORMAS,
+        ruta_normas=RUlsTA_NORMAS,
         ruta_indice_final=RUTA_INDICE_FINAL,
         ruta_stoplist=RUTA_STOPLIST
     )
