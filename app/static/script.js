@@ -99,7 +99,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             <td>${row.track_artist || 'N/A'}</td>
                             <td>${row.lyrics || 'N/A'}</td>
                             <td>${row.playlist_name || 'N/A'}</td>
-                            <td>${row.similitud || 'N/A'}</td>
                         `;
                         tablaBBody.appendChild(resultRow);
                     }
